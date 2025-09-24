@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>IPL Player Rankings</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #f8f9fa;
+        padding: 30px;
+    }
+
+    h2 {
+        color: #003366;
+    }
+
+    /* Button styles for filter */
+    form#formatForm button {
+      background-color: #e0e0e0;
+      border: none;
+      color: #003366;
+      padding: 10px 20px;
+      margin-right: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    form#formatForm button:hover {
+      background-color: #c0d6e4;
+      transform: scale(1.05);
+    }
+
+    form#formatForm button.selected {
+      background-color: #003366;
+      color: white;
+      box-shadow: 0 0 8px #003366aa;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 8px #003366aa;
+      }
+      50% {
+        box-shadow: 0 0 15px #003366ff;
+      }
+      100% {
+        box-shadow: 0 0 8px #003366aa;
+      }
+    }
+
+    input[type="text"] {
+        padding: 10px;
+        margin: 20px 0;
+        width: 300px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    th, td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+        text-align: center;
+    }
+
+    th {
+        background-color: #003366;
+        color: white;
+        cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Player Stats & ICC Rankings</h2>
+
+<!-- Filter Buttons Form -->
+<form th:action="@{/api/stats}" method="get" id="formatForm" style="margin-bottom:20px;">
+  <button type="submit" name="format" value=""
+          th:classappend="${param.format == null or param.format == ''} ? 'selected' : ''">
+    All
+  </button>
+
+  <button type="submit" name="format" value="T20"
+          th:classappend="${param.format == 'T20'} ? 'selected' : ''">
+    T20
+  </button>
+
+  <button type="submit" name="format" value="ODI"
+          th:classappend="${param.format == 'ODI'} ? 'selected' : ''">
+    ODI
+  </button>
+
+  <button type="submit" name="format" value="Test"
+          th:classappend="${param.format == 'Test'} ? 'selected' : ''">
+    Test
+  </button>
+</form>
+
+<input type="text" id="searchBox" placeholder="Search Player..." />
+
+<table id="statsTable">
+  <thead>
+  <tr>
+    <th onclick="sortTable(0)">Player Name</th>
+    <th onclick="sortTable(1)">Team</th>
+    <th onclick="sortTable(2)">Type</th>
+    <th onclick="sortTable(3)">Format</th>
+    <th onclick="sortTable(4)">Runs</th>
+    <th onclick="sortTable(5)">Wickets</th>
+    <th onclick="sortTable(6)">ICC Ranking</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="stat : ${stats}">
+    <td th:text="${stat.playerName}">Name</td>
+    <td th:text="${stat.teamName}">Team</td>
+    <td th:text="${stat.playerType}">Type</td>
+    <td th:text="${stat.format}">Format</td>
+    <td th:text="${stat.runs}">Runs</td>
+    <td th:text="${stat.wickets}">Wickets</td>
+    <td th:text="${stat.iccRanking}">ICC Ranking</td>
+  </tr>
+  </tbody>
+</table>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  // 🔍 Search Functionality
+  $('#searchBox').on('input', function () {
+      const term = $(this).val();
+      const regex = new RegExp(term, 'i');
+
+      $('#statsTable tbody tr').each(function () {
+          const rowText = $(this).text();
+          $(this).toggle(regex.test(rowText));
+      });
+  });
+
+  // 🔃 Sort Table Function
+  function sortTable(colIndex) {
+      const table = document.getElementById("statsTable");
+      let switching = true;
+      let dir = "asc";
+      let switchcount = 0;
+
+      while (switching) {
+          switching = false;
+          let rows = table.rows;
+
+          for (let i = 1; i < rows.length - 1; i++) {
+              let shouldSwitch = false;
+              let x = rows[i].getElementsByTagName("TD")[colIndex];
+              let y = rows[i + 1].getElementsByTagName("TD")[colIndex];
+
+              let xVal = x.textContent.trim();
+              let yVal = y.textContent.trim();
+
+              if (!isNaN(xVal) && !isNaN(yVal)) {
+                  xVal = parseFloat(xVal);
+                  yVal = parseFloat(yVal);
+              }
+
+              if ((dir === "asc" && xVal > yVal) || (dir === "desc" && xVal < yVal)) {
+                  shouldSwitch = true;
+                  break;
+              }
+          }
+
+          if (shouldSwitch) {
+              rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+              switching = true;
+              switchcount++;
+          } else {
+              if (switchcount === 0 && dir === "asc") {
+                  dir = "desc";
+                  switching = true;
+              }
+          }
+      }
+  }
+</script>
+
+</body>
+</html>

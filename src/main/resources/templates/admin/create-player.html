@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Create Player - Admin Panel</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #ffd700;
+            color: #333;
+        }
+
+        form {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+            animation: fadeInUp 1s ease;
+            color: white;
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        form input[type="text"],
+        form input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        form button[type="submit"] {
+            background-color: #ffd700;
+            border: none;
+            color: #333;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            font-weight: 700;
+            margin-left: 15px;
+        }
+
+        form button[type="submit"]:hover {
+            transform: scale(1.05);
+        }
+
+        form button[type="button"] {
+            margin-bottom: 20px;
+            background-color: #ffa500;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        form button[type="button"]:hover {
+            background-color: #ff8c00;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 60px 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto;
+        }
+
+        .stat-block {
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="sidebar">
+    <h2>Admin Panel</h2>
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/users">Manage Users</a>
+    <a href="/admin/players">Manage Players</a>
+    <a href="/api/createPlayer" style="background-color: #ffd700; color: #333; border-radius: 5px;">Add Player</a>
+    <a href="/admin/reports">Reports</a>
+    <form th:action="@{/logout}" method="post" style="margin-top: auto;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit" class="btn">Logout</button>
+    </form>
+</nav>
+
+<main class="main-content">
+    <form th:action="@{/api/createPlayer}" method="post" th:object="${player}">
+        <h1>Add New Player</h1>
+
+        <label for="playerName">Player Name</label>
+        <input type="text" id="playerName" th:field="*{playerName}" placeholder="Enter player name" required />
+
+        <label for="jerseyNumber">Jersey Number</label>
+        <input type="number" id="jerseyNumber" th:field="*{jerseyNumber}" placeholder="Enter jersey number" min="0" required />
+
+        <label for="ranking">Ranking</label>
+        <input type="number" id="ranking" th:field="*{ranking}" placeholder="Enter ranking" min="0" required />
+
+        <label for="teamName">Team Name</label>
+        <input type="text" id="teamName" th:field="*{teamName}" placeholder="Enter team name" required />
+
+        <h2>Player Stats</h2>
+
+        <div id="statsContainer" th:each="stat, iterStat : *{playerStats}">
+            <div class="stat-block">
+                <label>Format</label>
+                <input type="text" th:field="*{playerStats[__${iterStat.index}__].format}" placeholder="Format" required />
+
+                <label>Runs</label>
+                <input type="number" th:field="*{playerStats[__${iterStat.index}__].runs}" placeholder="Runs" min="0" required />
+
+                <label>Wickets</label>
+                <input type="number" th:field="*{playerStats[__${iterStat.index}__].wickets}" placeholder="Wickets" min="0" required />
+
+                <label>ICC Ranking</label>
+                <input type="number" th:field="*{playerStats[__${iterStat.index}__].iccRanking}" placeholder="ICC Ranking" min="0" required />
+
+                <button type="button" onclick="removeStat(this)">Remove Stat</button>
+                <hr />
+            </div>
+        </div>
+
+        <button type="button" onclick="addStat()">Add Another Stat</button>
+        <button type="submit">Add Player</button>
+    </form>
+</main>
+
+<script>
+    function removeStat(button) {
+        button.closest('.stat-block').remove();
+        updateStatIndices();
+    }
+
+    function addStat() {
+        const container = document.getElementById('statsContainer');
+        const index = container.children.length;
+
+        const newStat = document.createElement('div');
+        newStat.classList.add('stat-block');
+        newStat.innerHTML = `
+            <label>Format</label>
+            <input type="text" name="playerStats[${index}].format" placeholder="Format" required />
+
+            <label>Runs</label>
+            <input type="number" name="playerStats[${index}].runs" placeholder="Runs" min="0" required />
+
+            <label>Wickets</label>
+            <input type="number" name="playerStats[${index}].wickets" placeholder="Wickets" min="0" required />
+
+            <label>ICC Ranking</label>
+            <input type="number" name="playerStats[${index}].iccRanking" placeholder="ICC Ranking" min="0" required />
+
+            <button type="button" onclick="removeStat(this)">Remove Stat</button>
+            <hr />
+        `;
+        container.appendChild(newStat);
+        updateStatIndices();
+    }
+
+    function updateStatIndices() {
+        const container = document.getElementById('statsContainer');
+        Array.from(container.children).forEach((statBlock, i) => {
+            statBlock.querySelectorAll('input').forEach(input => {
+                const name = input.name;
+                const newName = name.replace(/playerStats\[\d+\]/, `playerStats[${i}]`);
+                input.name = newName;
+            });
+        });
+    }
+</script>
+
+</body>
+</html>

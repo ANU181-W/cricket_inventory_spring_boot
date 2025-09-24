@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Player Details - ' + ${player.playerName}">Player Details</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            animation: fadeIn 1s ease;
+        }
+
+        nav {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: white;
+            margin: 0 20px;
+            text-decoration: none;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #ffd700;
+        }
+
+        .container {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .player-card {
+            background-color: white;
+            color: #333;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: auto;
+            padding: 30px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .player-card:hover {
+            transform: scale(1.02);
+        }
+
+        h1 {
+            color: #764ba2;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .info p {
+            font-size: 18px;
+            margin: 8px 0;
+        }
+
+        .back-link {
+            margin-top: 30px;
+            display: inline-block;
+            text-decoration: none;
+            background-color: #ffd700;
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .back-link:hover {
+            background-color: #e6c200;
+        }
+ .player-card img {
+            width: 30%;
+            height: 30%;
+            border-radius: 50%;
+            object-fit: cover;
+
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .stats-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stats-table th, .stats-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        .stats-table th {
+            background-color: #764ba2;
+            color: white;
+        }
+
+        .stats-table td {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo"><strong>Player Inventory</strong></div>
+    <div class="nav-links">
+        <a href="/api/">Home</a>
+        <a href="/api/players">Players</a>
+        <a href="/api/stats">Stats</a>
+    </div>
+    <form th:action="@{/logout}" method="post" style="display: inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit">Logout</button>
+    </form>
+</nav>
+
+<div class="container">
+    <div class="player-card">
+        <img th:src="'https://en.wikipedia.org/wiki/Special:Redirect/file/' + ${player.playerName.replace(' ', '_')} + '.jpg'"
+             th:alt="${player.playerName}"
+             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name='+this.alt.replace(' ','+');"
+        />
+        <h1 th:text="${player.playerName}">Player Name</h1>
+        <div class="info">
+            <p><strong>Team:</strong> <span th:text="${player.teamName}">Team Name</span></p>
+            <p><strong>Jersey Number:</strong> <span th:text="${player.jerseyNumber}">00</span></p>
+            <p><strong>Ranking:</strong> <span th:text="${player.ranking}">0</span></p>
+        </div>
+
+        <div class="stats-section" th:if="${player.playerStats != null}">
+            <h2 style="color: #764ba2; margin-top: 30px;">Player Stats</h2>
+            <table class="stats-table">
+                <thead>
+                <tr>
+                    <th>Format</th>
+                    <th>Runs</th>
+                    <th>Wickets</th>
+                    <th>ICC Ranking</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="stat : ${player.playerStats}">
+                    <td th:text="${stat.format}">T20</td>
+                    <td th:text="${stat.runs}">1000</td>
+                    <td th:text="${stat.wickets}">20</td>
+                    <td th:text="${stat.iccRanking}">1</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <a href="/api/players" class="back-link">← Back to Players</a>
+    </div>
+</div>
+
+</body>
+</html>

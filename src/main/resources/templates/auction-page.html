@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>IPL Auction</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <style>
+        /* ---------- Base ---------- */
+        :root{
+            --accent:#ffd700;
+            --panel-bg: rgba(0,0,0,0.25);
+            --card-select: #3e3a65;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg,#667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            -webkit-font-smoothing:antialiased;
+        }
+        h1 { text-align:center; margin:0 0 20px 0; font-size:28px; letter-spacing:1px; }
+
+        /* ---------- Player Cards ---------- */
+        #playersContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            max-width: 1100px;
+            margin: 0 auto 30px;
+        }
+        .player-card {
+            width: 220px;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.08);
+            text-align:center;
+            cursor:pointer;
+            transition: transform .18s ease, box-shadow .18s ease, background-color .18s;
+            user-select:none;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        .player-card:hover { transform: translateY(-6px); }
+        .player-card.selected {
+            border: 2px solid var(--accent);
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.15));
+            color: var(--accent);
+            font-weight:700;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+        }
+        .player-card img {
+            width:80px; height:80px; object-fit:cover; border-radius:50%; margin-bottom:10px; display:block; margin-left:auto; margin-right:auto;
+        }
+        .player-card h2 { margin:6px 0 4px; font-size:18px; }
+        .player-card small { opacity:0.9; display:block; margin-top:4px; font-weight:600; }
+
+        /* ---------- Auction Bid Panel ---------- */
+        #auctionBidSection {
+            max-width: 480px;
+            margin: 0 auto 28px;
+            background: var(--panel-bg);
+            border-radius: 14px;
+            padding: 26px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            display:none;
+            transition: transform .2s ease, opacity .2s;
+        }
+        #auctionBidSection.show { display:block; transform: translateY(0); opacity:1; }
+        #selectedPlayerName { text-align:center; font-size:22px; font-weight:700; margin-bottom:10px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.6); }
+        label { display:block; margin-top:12px; font-weight:700; color: #fff; opacity:0.95; }
+        input[type="text"], input[type="number"] {
+            width:100%; padding:10px 12px; margin-top:8px; border-radius:8px; border:none; font-size:16px; box-sizing:border-box;
+        }
+        #timer { margin-top:14px; text-align:center; font-weight:800; color:var(--accent); font-size:18px; }
+        button.placeBid {
+            margin-top:18px; width:100%; padding:12px 16px; border-radius:10px; border:none; font-weight:900; font-size:18px;
+            background: var(--accent); color:#222; cursor:pointer; box-shadow: 0 6px 12px rgba(0,0,0,0.25); transition: transform .12s, box-shadow .12s;
+        }
+        button.placeBid:active { transform: translateY(2px); box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+
+        /* ---------- Current bid display ---------- */
+        #currentStatus {
+            max-width:700px; margin: 16px auto; display:flex; gap:12px; justify-content:center; align-items:center;
+        }
+        .status-pill { background: rgba(0,0,0,0.2); padding:10px 14px; border-radius:10px; min-width:160px; text-align:center; box-shadow: 0 6px 16px rgba(0,0,0,0.22); }
+        .status-pill h4 { margin:0; font-size:14px; opacity:0.9; }
+        .status-pill p { margin:6px 0 0; font-weight:800; font-size:16px; color:var(--accent); }
+
+        /* ---------- Auction Updates ---------- */
+        #auctionUpdates {
+            max-width: 900px;
+            margin: 18px auto 40px;
+            background: var(--panel-bg);
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            font-size: 15px;
+        }
+        #auctionUpdates h3 { margin-top:0; text-align:center; }
+        .update { padding:10px 8px; border-bottom:1px solid rgba(255,255,255,0.05); opacity:0.98; display:flex; gap:12px; align-items:center; }
+        .update .dot { width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 2px 8px rgba(0,0,0,0.25); margin-left:6px; }
+        .fade-in { animation: fadeUp .36s ease both; }
+        @keyframes fadeUp { from { transform: translateY(6px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+
+        /* ---------- Modal (winner) ---------- */
+        .modal-backdrop { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); z-index:1200; }
+        .modal-backdrop.show { display:flex; animation: backdropFade .2s ease both; }
+        @keyframes backdropFade { from{opacity:0} to{opacity:1} }
+        .modal {
+            width: 420px; background: linear-gradient(180deg,#2b2250,#3e3a65); border-radius:14px; padding:20px; text-align:center; color:#fff;
+            transform: scale(.9); opacity:0; animation: pop .28s cubic-bezier(.2,.9,.2,1) forwards;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+        }
+        @keyframes pop { to{ transform:scale(1); opacity:1 } }
+        .modal h2 { margin:6px 0 4px; font-size:20px; letter-spacing:0.6px; }
+        .modal p { margin:6px 0 0; opacity:0.95; }
+        .modal .winner-name { font-weight:900; font-size:20px; color:var(--accent); margin-top:8px; }
+        .modal button { margin-top:14px; padding:10px 16px; border-radius:10px; border:none; cursor:pointer; font-weight:800; }
+
+        /* ---------- small responsive ---------- */
+        @media (max-width:780px) {
+            #playersContainer { gap:10px; }
+            .player-card { width:46%; }
+            #auctionBidSection { width:92%; padding:16px; }
+        }
+        .container{
+          display:flex;
+          flex-wrap:wrap;
+
+
+        }
+    </style>
+</head>
+<body>
+
+<h1>IPL Auction</h1>
+
+<!-- Players -->
+<div class="container">
+
+
+<div id="playersContainer" th:each="player : ${players}">
+    <div class="player-card"
+         th:id="'player-' + ${player.playerId}"
+         th:data-player-id="${player.playerId}"
+         th:data-player-name="${player.playerName}"
+         th:data-player-team="${player.teamName}">
+        <img th:src="'https://en.wikipedia.org/wiki/Special:Redirect/file/' + ${player.playerName.replace(' ', '_')} + '.jpg'"
+             th:alt="${player.playerName}"
+             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name='+this.alt.replace(' ','+');" />
+        <h2 th:text="${player.playerName}">Player</h2>
+        <small th:text="${player.teamName}">Team</small>
+    </div>
+</div>
+</div>
+<!-- Auction Bid Section -->
+<div id="auctionBidSection">
+    <div id="selectedPlayerName">Selected Player: —</div>
+
+    <label for="bidderName">Your Name:</label>
+    <input type="text" id="bidderName" placeholder="Enter your name" autocomplete="off" />
+
+    <label for="bidAmount">Bid Amount (₹):</label>
+    <input type="number" id="bidAmount" min="1" placeholder="Enter bid amount" />
+
+    <div id="timer">Time left: 15s</div>
+
+    <button class="placeBid" onclick="sendBid()">Place Bid</button>
+</div>
+
+<!-- Current status: live current bid / highest bidder -->
+<div id="currentStatus" style="display:none;">
+    <div class="status-pill">
+        <h4>Current Bid</h4>
+        <p id="displayCurrentBid">₹—</p>
+    </div>
+    <div class="status-pill">
+        <h4>Highest Bidder</h4>
+        <p id="displayHighestBidder">—</p>
+    </div>
+</div>
+
+<!-- Auction Updates -->
+<div id="auctionUpdates">
+    <h3>Auction Updates:</h3>
+    <div id="updatesList"></div>
+</div>
+
+<!-- Winner Modal -->
+<div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+        <h2 id="modalTitle">Auction Ended</h2>
+        <p id="modalMessage">Winning Bid:</p>
+        <div class="winner-name" id="modalWinner">—</div>
+        <button onclick="closeModal()" style="background:var(--accent);">OK</button>
+    </div>
+</div>
+
+
+<script>
+    let stompClient = null;
+    let selectedPlayerId = null;
+    let selectedPlayerName = null;
+    let timerInterval = null;
+    let timeLeft = 15;
+
+    function connect() {
+        const socket = new SockJS('/ws-auction');
+        stompClient = Stomp.over(socket);
+        // Optional: disable debug logs
+        stompClient.debug = null;
+
+        stompClient.connect({}, function () {
+            stompClient.subscribe('/topic/auction', function (response) {
+                try {
+                    const res = JSON.parse(response.body);
+                    handleAuctionMessage(res);
+                } catch (e) {
+                    console.error("Failed to parse message", e, response.body);
+                }
+            });
+        }, function(error){
+            console.error('STOMP connect error', error);
+        });
+    }
+
+    function handleAuctionMessage(res) {
+        // Normalize fields (some backend versions may use different names)
+        const playerId = res.playerId || res.playerID || res.id;
+        const currentBid = res.currentBid !== undefined ? res.currentBid : res.bid || res.auctionAmount || 0;
+        const highestBidder = res.highestBidder || res.highest_bidder || res.winner || null;
+        const message = res.message || "";
+
+        // prepend update line
+        const updatesList = document.getElementById('updatesList');
+        const el = document.createElement('div');
+        el.className = 'update fade-in';
+        el.innerHTML = `<div style="flex:1">
+            <strong>Player ID: ${playerId}</strong> — Bid: ₹${currentBid} — Highest: ${highestBidder || '—'}
+            <div style="opacity:.9; margin-top:6px">${message}</div>
+        </div><div class="dot"></div>`;
+        updatesList.insertBefore(el, updatesList.firstChild);
+
+        // If this update is for the currently selected player, update the little status panel
+        if (selectedPlayerId && Number(playerId) === Number(selectedPlayerId)) {
+            showCurrentStatus(currentBid, highestBidder);
+        }
+
+        // If auction started or message mentions "started", show/reset timer
+        if (message && (message.toLowerCase().includes("auction started") || message.toLowerCase().includes("base price"))) {
+            // display the base price to status
+            showCurrentStatus(currentBid, highestBidder);
+            resetTimer();
+        }
+
+        // When a new valid bid is placed (message includes "New bid" or "New bid placed")
+        if (message && message.toLowerCase().includes("new bid")) {
+            showCurrentStatus(currentBid, highestBidder);
+            resetTimer();
+            // small highlight animation
+            flashStatus();
+        }
+
+        // For "bid too low", show a non-blocking notification
+        if (message && message.toLowerCase().includes("bid too low")) {
+            flashNotification("Bid too low — minimum increment not met");
+        }
+
+        // Auction ended
+        if (message && message.toLowerCase().includes("auction ended")) {
+            // If this ended auction is the one selected, show modal and clear UI
+            if (selectedPlayerId && Number(playerId) === Number(selectedPlayerId)) {
+                clearInterval(timerInterval);
+                setTimeout(()=> {
+                    showWinnerModal(selectedPlayerName, currentBid, highestBidder);
+                }, 150); // small delay for animation
+            } else {
+                // For other players, show a small update only (already added in updates)
+            }
+        }
+    }
+
+    function showCurrentStatus(bid, bidder) {
+        document.getElementById('currentStatus').style.display = 'flex';
+        document.getElementById('displayCurrentBid').innerText = `₹${bid}`;
+        document.getElementById('displayHighestBidder').innerText = bidder || '—';
+    }
+
+    function flashStatus(){
+        const el = document.getElementById('currentStatus');
+        if (!el) return;
+        el.animate([{transform:'scale(1)'},{transform:'scale(1.02)'},{transform:'scale(1)'}], {duration:300});
+    }
+
+    function flashNotification(msg) {
+        // small transient message appended to updates
+        const updatesList = document.getElementById('updatesList');
+        const t = document.createElement('div');
+        t.className = 'update fade-in';
+        t.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.03), rgba(0,0,0,0.08))';
+        t.innerHTML = `<div style="flex:1"><strong>Notice:</strong> ${msg}</div><div class="dot"></div>`;
+        updatesList.insertBefore(t, updatesList.firstChild);
+        setTimeout(()=> { if (t.parentNode) t.parentNode.removeChild(t); }, 3000);
+    }
+
+    function selectPlayer(id, name, team) {
+        selectedPlayerId = id;
+        selectedPlayerName = name;
+
+        // Highlight selected card
+        document.querySelectorAll('.player-card').forEach(card => card.classList.remove('selected'));
+        const sel = document.getElementById('player-' + id);
+        if (sel) sel.classList.add('selected');
+
+        // Show bid panel
+        document.getElementById('selectedPlayerName').innerText = `Selected Player: ${name} (${team})`;
+        document.getElementById('auctionBidSection').classList.add('show');
+
+        // Clear inputs
+        document.getElementById('bidderName').value = '';
+        document.getElementById('bidAmount').value = '';
+
+        // Reset UI status
+        document.getElementById('displayCurrentBid').innerText = '₹—';
+        document.getElementById('displayHighestBidder').innerText = '—';
+        document.getElementById('currentStatus').style.display = 'none';
+
+        resetTimer();
+
+        // Start auction for this player (send to backend)
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/startAuction", {}, JSON.stringify({ playerId: Number(id) }));
+        } else {
+            console.warn("STOMP not connected yet.");
+        }
+    }
+
+    function sendBid() {
+        const amount = Number(document.getElementById('bidAmount').value);
+        const bidder = document.getElementById('bidderName').value.trim();
+
+        if (!selectedPlayerId) { alert("Select a player first."); return; }
+        if (!bidder) { alert("Please enter your name."); return; }
+        if (!amount || amount <= 0) { alert("Please enter a valid bid amount."); return; }
+
+        const bid = {
+            playerId: Number(selectedPlayerId),
+            bidAmount: amount,
+            bidderName: bidder
+        };
+
+        // NOTE: backend expects @MessageMapping("/bid") -> client must send to /app/bid
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/bid", {}, JSON.stringify(bid));
+            document.getElementById('bidAmount').value = '';
+        } else {
+            alert("Connection not ready. Try again in a moment.");
+        }
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 15;
+        document.getElementById('timer').innerText = `Time left: ${timeLeft}s`;
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = `Time left: ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+            }
+        }, 1000);
+    }
+
+    // Modal functions
+    function showWinnerModal(name, winningBid, winner) {
+        const backdrop = document.getElementById('modalBackdrop');
+        const title = document.getElementById('modalTitle');
+        const message = document.getElementById('modalMessage');
+        const modalWinner = document.getElementById('modalWinner');
+
+        title.innerText = `Auction ended: ${name || 'Player'}`;
+        message.innerText = `Winning Bid: ₹${winningBid || 0}`;
+        modalWinner.innerText = (winner && winner !== "null") ? (winner + ` — Winner`) : "Unsold";
+
+        backdrop.classList.add('show');
+
+        // hide the bid UI and unselect
+        document.getElementById('auctionBidSection').classList.remove('show');
+        document.querySelectorAll('.player-card').forEach(c => c.classList.remove('selected'));
+        selectedPlayerId = null;
+        selectedPlayerName = null;
+
+        // clear status area
+        document.getElementById('currentStatus').style.display = 'none';
+        document.getElementById('timer').innerText = '';
+    }
+
+    function closeModal() {
+        const backdrop = document.getElementById('modalBackdrop');
+        backdrop.classList.remove('show');
+    }
+
+    // initialise
+    document.addEventListener("DOMContentLoaded", () => {
+        connect();
+
+        // attach click listeners to player cards
+        document.querySelectorAll(".player-card").forEach(card => {
+            card.addEventListener("click", () => {
+                const id = card.getAttribute("data-player-id");
+                const name = card.getAttribute("data-player-name");
+                const team = card.getAttribute("data-player-team");
+                selectPlayer(id, name, team);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

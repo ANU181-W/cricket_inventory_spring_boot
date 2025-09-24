@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Player Inventory - Players</title>
+    <link rel="stylesheet" href="/css/style.css"> <!-- Optional: External stylesheet -->
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+        }
+
+        nav {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: white;
+            margin: 0 20px;
+            text-decoration: none;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #ffd700;
+        }
+
+        .container {
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .card {
+            background-color: white;
+            color: #333;
+            border-radius: 12px;
+            width: 250px;
+            padding: 25px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.4);
+        }
+
+        .card img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #764ba2;
+        }
+
+        .card p {
+            margin: 6px 0;
+        }
+
+        .no-players {
+            font-size: 22px;
+            margin-top: 50px;
+            color: #f5f5f5;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav>
+    <div class="logo"><strong>Player Inventory</strong></div>
+    <div class="nav-links">
+        <a href="/" th:href="@{/}">Home</a>
+        <a href="/players" th:href="@{/api/players}">Players</a>
+        <a href="/api/stats" th:href="@{/api/stats}">Stats</a>
+    </div>
+    <form th:action="@{/logout}" method="post" style="display: inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit">Logout</button>
+    </form>
+</nav>
+
+<!-- Main Content -->
+<div class="container">
+    <h1>Cricket Players</h1>
+
+    <div class="card-grid">
+        <!-- Loop through the players list -->
+        <div class="card"
+             th:each="player : ${players}"
+             th:onclick="'window.location.href=\'player/\' + ' + ${player.playerId}">
+
+            <!-- Wikipedia or Fallback Avatar -->
+            <img th:src="'https://en.wikipedia.org/wiki/Special:Redirect/file/' + ${player.playerName.replace(' ', '_')} + '.jpg'"
+                 th:alt="${player.playerName}"
+                 onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name='+this.alt.replace(' ','+');"
+            />
+
+            <!-- Player Info -->
+            <h2 th:text="${player.playerName}">Player Name</h2>
+            <p><strong>Team:</strong> <span th:text="${player.teamName}">Team</span></p>
+            <p><strong>Jersey Number :</strong> <span th:text="${player.jerseyNumber}">00</span></p>
+            <p><strong>Ranking:</strong> <span th:text="${player.ranking}">0</span></p>
+        </div>
+    </div>
+
+    <div class="no-players" th:if="${#lists.isEmpty(players)}">
+        No players found.
+    </div>
+</div>
+
+</body>
+</html>
