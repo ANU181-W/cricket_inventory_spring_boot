@@ -26,7 +26,7 @@ public class AuctionServiceImpl implements AuctionService {
     private final Map<Integer, Boolean> activeAuctions = new ConcurrentHashMap<>();
 
     private static final long BASE_PRICE = 5000000;   // ₹50 lakh base price
-    private static final long MIN_INCREMENT = 2000000; // ₹20 lakh increment
+    private static final long MIN_INCREMENT = 1000000; // ₹20 lakh increment
 
     @Autowired
     public AuctionServiceImpl(auction auctionRepository, SimpMessagingTemplate messagingTemplate) {
