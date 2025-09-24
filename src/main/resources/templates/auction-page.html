@@ -167,7 +167,7 @@
     <label for="bidAmount">Bid Amount (₹):</label>
     <input type="number" id="bidAmount" min="1" placeholder="Enter bid amount" />
 
-    <div id="timer">Time left: 15s</div>
+    <div id="timer">Time left: 30s</div>
 
     <button class="placeBid" onclick="sendBid()">Place Bid</button>
 </div>
@@ -206,7 +206,7 @@
     let selectedPlayerId = null;
     let selectedPlayerName = null;
     let timerInterval = null;
-    let timeLeft = 15;
+    let timeLeft = 30;
 
     function connect() {
         const socket = new SockJS('/ws-auction');
@@ -364,7 +364,7 @@
 
     function resetTimer() {
         clearInterval(timerInterval);
-        timeLeft = 15;
+        timeLeft = 30;
         document.getElementById('timer').innerText = `Time left: ${timeLeft}s`;
 
         timerInterval = setInterval(() => {
