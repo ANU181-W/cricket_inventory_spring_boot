@@ -5,52 +5,28 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GeminiResponse {
-    private List<Candidate> candidates;
+    private List<Choice> choices;
 
-    public List<Candidate> getCandidates() {
-        return candidates;
-    }
+    public List<Choice> getChoices() { return choices; }
+    public void setChoices(List<Choice> choices) { this.choices = choices; }
 
-    public void setCandidates(List<Candidate> candidates) {
-        this.candidates = candidates;
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Choice {
+        private Message message;
+
+        public Message getMessage() { return message; }
+        public void setMessage(Message message) { this.message = message; }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Candidate {
-        private Content content;
+    public static class Message {
+        private String role;
+        private String content;
 
-        public Content getContent() {
-            return content;
-        }
+        public String getRole() { return role; }
+        public String getContent() { return content; }
 
-        public void setContent(Content content) {
-            this.content = content;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Content {
-        private List<Part> parts;
-
-        public List<Part> getParts() {
-            return parts;
-        }
-
-        public void setParts(List<Part> parts) {
-            this.parts = parts;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Part {
-        private String text;
-
-        public String getText() {
-            return text;
-        }
-
-        public void setText(String text) {
-            this.text = text;
-        }
+        public void setRole(String role) { this.role = role; }
+        public void setContent(String content) { this.content = content; }
     }
 }

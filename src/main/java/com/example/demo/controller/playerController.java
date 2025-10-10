@@ -76,11 +76,14 @@ public class playerController {
 }
 
     @PostMapping("/createDoc")
-
-    public ResponseEntity<String> generateDocumentary(@RequestParam String playerName) throws InterruptedException {
-        String documentary = thePlayerService.generateDocumentary(playerName);
+    @ResponseBody
+    public ResponseEntity<String> generateDocumentary(@RequestParam String prompt) throws InterruptedException {
+        String documentary = thePlayerService.generateDocumentary(prompt);
         return ResponseEntity.ok(documentary);
     }
+
+
+
 
 
 }

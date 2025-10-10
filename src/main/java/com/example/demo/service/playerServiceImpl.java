@@ -64,21 +64,27 @@ public void savePlayer(List<Player> thePlayers) {
          List<PlayerDto> result=dbManager.getPlayerStatsByFormat(format);
          return result;
     }
-    public String generateDocumentary(String playerName) throws InterruptedException {
+    public String generateDocumentary(String prompt) throws InterruptedException {
         String apiKey = apiKeyGemini;
-        String url = apiUrl + "?key=" + apiKey;
-        String prompt = "Write a documentary script about the cricket player " + playerName;
+        String url = apiUrl;
+        String model = "google/gemini-2.5-flash-image";
 
-        GeminiRequest request = new GeminiRequest(prompt);
+        // Pass the dynamic prompt directly from the user
+        String userPrompt = prompt;
+
+        GeminiRequest request = new GeminiRequest(model, userPrompt);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + apiKey);
+        headers.set("HTTP-Referer", "https://your-app.com");
+        headers.set("X-Title", "Cricket AI Content");
 
         HttpEntity<GeminiRequest> entity = new HttpEntity<>(request, headers);
 
         int maxRetries = 5;
         int retryCount = 0;
-        long retryDelayMs = 16000; // 16 seconds as suggested by API
+        long retryDelayMs = 16000;
 
         while (true) {
             try {
@@ -89,22 +95,25 @@ public void savePlayer(List<Player> thePlayers) {
                         GeminiResponse.class
                 );
 
-                // Extract generated text
-                return response.getBody()
-                        .getCandidates().get(0)
-                        .getContent().getParts().get(0)
-                        .getText();
+                if (response.getBody() != null &&
+                        response.getBody().getChoices() != null &&
+                        !response.getBody().getChoices().isEmpty()) {
+
+                    // Return the raw HTML text
+                    return response.getBody().getChoices().get(0).getMessage().getContent();
+                } else {
+                    return "<h2>No content received from Gemini API</h2>";
+                }
 
             } catch (HttpClientErrorException.TooManyRequests e) {
-                if (retryCount >= maxRetries) {
-                    throw e; // max retries reached, propagate exception
-                }
+                if (retryCount >= maxRetries) throw e;
                 retryCount++;
-                System.out.println("429 received, retrying after " + retryDelayMs/1000 + " seconds...");
+                System.out.println("429 Too Many Requests, retrying in " + (retryDelayMs / 1000) + " seconds...");
                 Thread.sleep(retryDelayMs);
             }
         }
     }
+
 
 
 

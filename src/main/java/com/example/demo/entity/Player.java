@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -25,18 +26,26 @@ public class Player {
 
     @Column(name="team_name")
     private String teamName;
+
+    @Column(name="country")
+    private String country;
+
 @Column(name="player_type")
 private String playerType;
     @OneToMany(mappedBy="thePlayer",cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonManagedReference
     private List<PlayerStats> playerStats=new ArrayList<>();
-
-    public Player(String player_name, int jersey_number, int ranking, String team_name,String playerType){
+@ManyToOne()
+@JoinColumn(name="teamId")
+@JsonBackReference
+private Team theTeam;
+    public Player(String player_name, int jersey_number, int ranking, String team_name,String playerType,String country){
         this.playerName=player_name;
         this.jerseyNumber=jersey_number;
         this.ranking=ranking;
         this.teamName=team_name;
         this.playerType=playerType;
+        this.country=country;
     }
     public Player(){}
     public String getPlayerName(){
@@ -88,5 +97,11 @@ private String playerType;
     public void setPlayerType(String playerType){
         this.playerType=playerType;
     }
+public String getCountry(){
+        return country;
+}
 
+public void setCountry(String country){
+        this.country=country;
+}
 }

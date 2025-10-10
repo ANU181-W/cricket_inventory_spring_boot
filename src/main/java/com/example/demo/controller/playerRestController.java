@@ -111,5 +111,9 @@ public class playerRestController {
         model.addAttribute("stats",playerStats);
         return "player-stats";
     }
+    @GetMapping("/get/playersDocAI")
+    public String getPlayerInfo(){
+        return "playerDoc";
+    }
 
 }

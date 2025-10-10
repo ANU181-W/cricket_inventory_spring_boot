@@ -1,0 +1,213 @@
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virat Kohli: The Run Machine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+        header {
+            background-color: #0056b3;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        nav {
+            background-color: #004085;
+            padding: 0.5rem 0;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        nav a:hover {
+            background-color: #0056b3;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 2rem 0;
+        }
+        .intro {
+            background: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .intro img {
+            max-width: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .achievement-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .achievement-card h3 {
+            color: #0056b3;
+            margin-top: 0;
+        }
+        .achievement-card img {
+            max-width: 100%;
+            height: 200px; /* Fixed height for consistency */
+            object-fit: contain; /* Ensures the whole image is visible */
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .stats-section {
+            background: #e9ecef;
+            padding: 2rem;
+            margin-top: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stats-section ul {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        .stats-section li {
+            background: white;
+            padding: 1rem;
+            border-left: 5px solid #0056b3;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: 2rem;
+        }
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+            .intro {
+                flex-direction: column;
+                text-align: center;
+            }
+            .intro img {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Virat Kohli: The Modern-Day Legend</h1>
+        <p>A deep dive into the career and achievements of the Indian cricketing icon.</p>
+    </header>
+
+    <nav>
+        <a href="#about">About</a>
+        <a href="#achievements">Achievements</a>
+        <a href="#records">Records & Stats</a>
+        <a href="#gallery">Gallery</a>
+    </nav>
+
+    <div class="container">
+        <section id="about" class="intro">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Virat_Kohli_during_a_training_session.jpg/800px-Virat_Kohli_during_a_training_session.jpg" alt="Virat Kohli in action">
+            <div>
+                <h2>Introduction to "King Kohli"</h2>
+                <p>Virat Kohli, born November 5, 1988, is an Indian international cricketer and former captain of the Indian national cricket team. Considered one of the greatest batsmen of all time, Kohli plays as a right-handed batsman for Delhi in domestic cricket and Royal Challengers Bangalore in the IPL. He is often referred to as "King Kohli" due to his dominant performances across all formats of the game.</p>
+                <p>Kohli made his international debut in 2008 and quickly established himself as a prolific run-scorer. His aggressive batting style and impeccable consistency have led him to break numerous records and guide India to many historic victories.</p>
+            </div>
+        </section>
+
+        <section id="achievements">
+            <h2>Key Achievements & Milestones</h2>
+            <div class="achievements-grid">
+                <div class="achievement-card">
+                    <h3>Most Centuries in ODIs</h3>
+                    <p>Surpassed Sachin Tendulkar's record for most One Day International centuries.</p>
+                    <img src="https://i.pinimg.com/564x/ca/9a/c3/ca9ac3096574f85e4922114757521e8e.jpg" alt="Virat Kohli celebrating a century">
+                    <p>A testament to his incredible longevity and consistency in the 50-over format.</p>
+                </div>
+                <div class="achievement-card">
+                    <h3>Leading Run-Scorer in T20Is</h3>
+                    <p>Holds the record for the most runs in Twenty20 International cricket.</p>
+                    <img src="https://bcci.tv/assets/images/643b1843-1628-4fb6-9fe9-be0b37f8fe32.jpg" alt="Virat Kohli with T20I trophy">
+                    <p>Known for his exemplary chase master abilities and striking big in crucial T20 games.</p>
+                </div>
+                <div class="achievement-card">
+                    <h3>ICC Player of the Decade (2010s)</h3>
+                    <p>Awarded the Sir Garfield Sobers Trophy for male cricketer of the decade.</p>
+                    <p>
+<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/Virat_Kohli_poses_with_Sir_Garfield_Sobers_Trophy.jpg" alt="Virat Kohli with ICC Player of the Decade trophy">
+</p>
+                    <p>Recognized for his unparalleled dominance and influence on world cricket throughout the 2010s.</p>
+                </div>
+                <div class="achievement-card">
+                    <h3>Captaincy Records</h3>
+                    <p>Most Test wins as Indian captain globally and highly successful in all formats.</p>
+                    <img src="https://i.pinimg.com/564x/0f/c6/ab/0fc6ab19c36bca487373f087595c276a.jpg" alt="Virat Kohli captaining India">
+                    <p>Under his leadership, India reached new heights, especially in Test cricket.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="records" class="stats-section">
+            <h2>Notable Records & Statistics</h2>
+            <ul>
+                <li><strong>Most ODI centuries:</strong> 50+ centuries and counting.</li>
+                <li><strong>Fastest to 8,000, 9,000, 10,000, 11,000, 12,000, and 13,000 ODI runs.</strong></li>
+                <li><strong>Only player to score 20,000 international runs across all formats in a decade (2010s).</strong></li>
+                <li><strong>Most runs in a calendar year in ODIs by an Indian:</strong> 1,377 runs in 2018.</li>
+                <li><strong>First player to score centuries against all 9 Test-playing nations.</strong></li>
+                <li><strong>Most Player of the Series awards in T20Is.</strong></li>
+                <li><strong>Highest career batting average in T20I history (for players with significant matches).</strong></li>
+                <li><strong>Only captain to score centuries in a World Cup and a Champions Trophy final (though not final wins).</strong></li>
+            </ul>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Cricket Content Creator. All rights reserved. Data from BCCI, ICC, ESPNCricinfo, Wikipedia & Pinterest.</p>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

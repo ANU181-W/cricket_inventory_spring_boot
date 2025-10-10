@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Cricket Content Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-purple-700 to-pink-600 text-white min-h-screen flex items-center justify-center">
+<div class="bg-white text-gray-900 p-10 rounded-3xl shadow-2xl max-w-3xl w-full">
+    <h1 class="text-3xl font-bold text-center mb-6">⚡ AI Cricket Content Generator</h1>
+    <p class="text-center text-gray-600 mb-4">
+        Enter a cricket-related prompt (e.g., “Create an HTML page for ODI World Cup 2023 achievements”)
+    </p>
+
+    <input id="promptInput"
+           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 mb-6"
+           placeholder="Type your cricket prompt here..." />
+
+    <button onclick="generateContent()"
+            class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 rounded-lg transition transform hover:scale-105">
+        Generate ✨
+    </button>
+
+    <div id="result" class="mt-8 border-t border-gray-200 pt-6 animate-fadeIn"></div>
+</div>
+
+<script>
+    async function generateContent() {
+      const prompt = document.getElementById("promptInput").value;
+      const resultDiv = document.getElementById("result");
+
+      if (!prompt.trim()) {
+        resultDiv.innerHTML = "<p class='text-red-600'>⚠️ Please enter a valid prompt.</p>";
+        return;
+      }
+
+      resultDiv.innerHTML = "<div class='animate-pulse text-blue-600 font-medium'>Generating... Please wait ⏳</div>";
+
+      try {
+        const response = await fetch(`http://localhost:8081/players/createDoc?prompt=${encodeURIComponent(prompt)}`, {
+          method: "POST"
+        });
+
+        if (response.ok) {
+          const html = await response.text();
+
+          // ✅ Render cleanly using an iframe sandbox
+          const iframe = document.createElement("iframe");
+          iframe.className = "w-full h-[80vh] mt-6 rounded-lg border border-gray-300 shadow-lg";
+          iframe.srcdoc = html;
+          iframe.sandbox = "allow-scripts allow-same-origin";
+
+          resultDiv.innerHTML = "";
+          resultDiv.appendChild(iframe);
+
+        } else {
+          resultDiv.innerHTML = `<p class='text-red-600'>❌ Error: ${response.status} - ${response.statusText}</p>`;
+        }
+      } catch (err) {
+        resultDiv.innerHTML = `<p class='text-red-600'>🚨 ${err.message}</p>`;
+      }
+    }
+</script>
+</body>
+</html>
